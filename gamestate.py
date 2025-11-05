@@ -32,7 +32,7 @@ class gameState:
             # print("you won")
             return True
 
-        def __eq__(self, value:gameState):
+        # def __eq__(self, value:gameState):
             # my_boxes=[]
             # value_boxes=[]
             # for i in range(len(self.box_map)):
@@ -50,7 +50,7 @@ class gameState:
             #         same_boxes=False
             #         break
             # print("in here")
-            return 1
+            # return 1
 
 
 
@@ -58,7 +58,7 @@ class stateNode():
     def __init__(self,c_cost: int,state:gameState, parent ):
         self.state=state
         self.c_cost=c_cost
-        self.h_cost=self.bearbones(self.state) #if value <0 then its a loose state or a repeating one
+        self.h_cost=self.newHeuristic(self.state) #if value <0 then its a loose state or a repeating one
         self.total_cost= self.c_cost+self.h_cost
         self.kids=[]
         self.parent=parent
@@ -89,21 +89,59 @@ class stateNode():
         player=self.state.player.pos()
         stateBuilt=gameState(boxes,player)
         c_cost=1
-        if(stateBuilt.checkForBox(move)):
-            c_cost=2
         stateBuilt.movePlayer(move)
         kid= stateNode(self.c_cost+c_cost,stateBuilt,self)
         self.kids[move]=kid
         return kid
     
     
-    
-    def bearbones(self, state: gameState):
+    def newHeuristic(self, state: gameState):
+        # einai h apostash manhatan olwn ton koytiown apo to kontinotero mh piasmeno goal + thn apostash toy pexti apo to kontinotero mh piasmeno box + thn apostash toy apo to closest mh piasmeno goal
         for box in state.box_map:
             if box.boxStuck(state.box_map):
                 return -1
         h_cost=0
-        for box in range(len(state.box_map)):
+        available_goals=[goal for goal in GOAL_LIST]
+        available_boxes=[box.pos() for box in state.box_map]
+        for box in range(len(available_boxes)):
+            try:
+                available_goals.remove(available_boxes[box])
+                available_boxes.remove(available_boxes[box])
+            except Exception:
+                continue
+        # apostash manhatan olwn ton koytiown apo to kontinotero mh piasmeno goal
+        for box in range(len(available_boxes)):
+            min_value=900
+            min_goal=None
+            for goal in available_goals:
+                y_value=abs(available_boxes[box][0]-goal[0])
+                x_value=abs(available_boxes[box][1]-goal[1])
+                value=y_value+x_value
+                if value<min_value:
+                    min_value=value
+                    min_goal=goal
+            h_cost+=min_value
+            available_goals.remove(min_goal)
+
+        # pos=state.player.pos()
+        
+        # min_dist=9000
+        # for inner_box in range(len(available_boxes)):
+        #     pos_x=abs(pos[1]-available_boxes[inner_box][1])
+        #     pos_y=abs(pos[1]-available_boxes[inner_box][0]) 
+        #     value=pos_x+pos_y
+        #     if value<min_dist:
+        #         min_dist=value
+        # h_cost+=min_dist
+        return h_cost
+
+    def bearbones(self, state: gameState):
+        # einai h apostash manhatan olwn ton koytiown apo to kontinotero pros to kathena goal, piasmeno h mh + thn apostash toy pexti apo to kontinotero box, on goal or not
+        for box in state.box_map:
+            if box.boxStuck(state.box_map):
+                return -1
+        h_cost=0
+        for box in range(len(state.box_map)): #elenxei apo to kontinotero goal kai as einai piasmeno, as poyme fine.
             values= [abs(state.box_map[box].y-goal[0])+abs(state.box_map[box].x-goal[1]) for goal in GOAL_LIST] #einai faster me generator for sum reason
             # for goal in GOAL_LIST:
             #     y=abs(state.box_map[box].y-goal[0])
@@ -128,60 +166,6 @@ class stateNode():
         #     values.append(value)
         values.sort()
         h_cost+=values[0]
-        return h_cost
-
-    def simpleHeuristic(self, state: gameState):
-        # f(n) = c(s)+h(s) h(heuristic position estimate), c(cost of movement)
-        # h(n) idea
-        # manhatan distance of all boxes from goals
-        # check if in a deadlock auto kill, deadlock if box cant move(kinda checks if boxstuck but not really)
-        # prefer to not move box if possible, if box moved +5 cost extra from the manhatan distance
-        h_cost=0
-        working_goals=[[tup[0],tup[1]] for tup in GOAL_LIST]
-        # print(working_goals)
-        working_boxes=list()
-        for box in range(len(state.box_map)):
-            if not state.box_map[box].onGoal():
-                working_boxes.append(state.box_map[box])
-            else:
-                working_goals.remove(state.box_map[box].pos())
-        # -1 is a loose state(or a re visited state)
-        # checking if box is in a stuck position(wall)
-        # checking if box is in a box semi-stuck position
-        # calculating manhatan distance from box to closest goal
-        for box in state.box_map:
-            if box.boxStuck(state.box_map):
-                return -1
-        if len(working_boxes)==0:
-            # print("GAME IS DONE")
-            # print("finished here!!!!!!!!!!")
-            return 0
-        
-        values=[]
-        # print(len(working_boxes)==len(working_goals))
-        for box in range(len(working_boxes)):
-            for goal in working_goals:
-                y=abs(working_boxes[box].y-goal[0])
-                x=abs(working_boxes[box].x-goal[1])
-                value=x+y
-                # print(value)
-                values.append(value)
-            values.sort()
-            # print(values)
-            h_cost+=values[0]*5
-            values=[]
-        # calculating distance from player to closest box(refreshes each time if it has to go to further box)
-        values=[]
-        for box in range(len(working_boxes)):
-            x=abs(state.player.x-working_boxes[box].x)
-            y=abs(state.player.y-working_boxes[box].y)
-            value=abs(x+y)
-            values.append(value)
-        values.sort()
-        h_cost+=values[0]*10
-        # print("h_cost= ", boxes[0])
-        # print(h_cost,"h_cost")
-        # print(h_cost==0,"finished hereeee!!")
         return h_cost
 
 class gameTree:
@@ -225,7 +209,7 @@ class gameTree:
         
 
     def checkWin(self):
-        value=self.min
+        value= self.min
         
         if value.h_cost==0:
             # print(value.h_cost)
@@ -233,4 +217,4 @@ class gameTree:
             return value
         
     
-  
+

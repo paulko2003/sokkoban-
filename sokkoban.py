@@ -16,6 +16,22 @@ class sokkoban:
         print(parse.boxes,parse.player)
         self.initial_playstate=gameState(parse.boxes, parse.player)
     
+    def show_travel(self, node):
+        move_stack=[node]
+        while move_stack[-1].parent != None:
+            move_stack.append(move_stack[-1].parent)
+        print(f"won with {len(move_stack)-1} moves")
+        for state in range(len(move_stack)-1, -1, -1):
+            # print(state)
+            showing_state=move_stack[state].state
+            update(showing_state)
+            sleep(0.2)
+
+    def show_state(self,node):
+        showing_state=node.state
+        update(showing_state)
+        sleep(0.2)
+
     def main(self):
         game=gameTree(self.initial_playstate)
         won = game.won
@@ -25,18 +41,10 @@ class sokkoban:
             # print(game.investigating,"----------------")
             game.checkWin()
             won= game.won
+            # self.show_state(game.min)
         print(len(game.closed_set))
-        move_stack=[game.min]
-        while move_stack[-1].parent != None:
-            move_stack.append(move_stack[-1].parent)
-        # print(len(move_stack))
-        print(f"won with {len(move_stack)} moves")
-        for state in range(len(move_stack)-1, -1, -1):
-            # print(state)
-            showing_state=move_stack[state].state
-            update(showing_state)
-            update(showing_state)
-            sleep(0.2)
-        quit()
+        self.show_travel(game.min)
+        
+        
 sokkoban().main()
 

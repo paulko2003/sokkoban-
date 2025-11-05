@@ -63,5 +63,6 @@ class parser:
 
 parse=parser()
 GOAL_LIST=parse.goals
+print(GOAL_LIST)
 GLOBAL_MAP=parse.game_map_ground
 # player, boxes and goals are "living entities", not on map g
