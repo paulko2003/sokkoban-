@@ -73,15 +73,3 @@ def eventChecker():
     for e in pygame.event.get():
         if e.type == pygame.QUIT:
             pygame.quit()
-
-        # elif e.type ==  pygame.KEYDOWN:
-        #     if e.key == pygame.K_UP:
-        #         return 0
-        #     elif e.key == pygame.K_RIGHT:
-        #         return 1
-        #     elif e.key == pygame.K_DOWN:
-        #         return 2
-        #     elif e.key == pygame.K_LEFT:
-        #         return 3
-        #     elif e.key == pygame.K_SPACE:
-        #         return -1

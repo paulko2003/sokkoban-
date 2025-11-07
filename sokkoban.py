@@ -1,20 +1,12 @@
-from parser import parser, GOAL_LIST,GLOBAL_MAP
-from entities import box,player
-from visualisation import update, eventChecker,quit
+from parser import GOAL_LIST,GLOBAL_MAP,INITIAL_BOXES,INITIAL_PLAYER
+from visualisation import update
 from gamestate import gameState,gameTree
-import copy
 from time import sleep
-
-
-
 
 class sokkoban:
     
     def __init__(self):
-        parse=parser()
-        # we dont touch we only copy
-        print(parse.boxes,parse.player)
-        self.initial_playstate=gameState(parse.boxes, parse.player)
+        self.initial_playstate=gameState(INITIAL_BOXES, INITIAL_PLAYER)
     
     def show_travel(self, node):
         move_stack=[node]
@@ -38,13 +30,11 @@ class sokkoban:
         update(self.initial_playstate)
         while not won:
             game.buildDepth5()
-            # print(game.investigating,"----------------")
             game.checkWin()
             won= game.won
-            # self.show_state(game.min)
         print(len(game.closed_set))
-        self.show_travel(game.min)
-        
+        # self.show_travel(game.min)
+
         
 sokkoban().main()
 
